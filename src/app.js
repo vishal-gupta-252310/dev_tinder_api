@@ -1,29 +1,24 @@
 const express = require("express");
+const { isAdminAuth, isUserAuth } = require("./middlewares/auth");
 
 const app = express();
 
-app.use("/test", (req, res) => {
-  res.send("This is test route.");
+app.use("/admin", isAdminAuth);
+
+app.post("/user/login", (req, res) => {
+  res.send({ status: 200, message: "Logged in successfully" });
 });
 
-app.post("/user", (req, res) => {
-  res.send({ status: 201, message: "User added successfully." });
+app.get("/admin/company", (req, res) => {
+  res.send({ status: 200, message: "Listing of companies" });
 });
 
-app.get("/user", (req, res) => {
-  res.send({ firstName: "Vishal", lastName: "Gupta" });
+app.get("/admin/company/users", (req, res) => {
+  res.send({ status: 200, message: "Listing of users" });
 });
 
-app.put("/user/:id", (req, res) => {
-  res.send({ status: 200, message: "User updated successfully." });
-});
-
-app.patch("/user/:id", (req, res) => {
-  res.send({ status: 200, message: "User updated successfully." });
-});
-
-app.delete("/user/:id", (req, res) => {
-  res.send({ status: 200, message: "User Deleted successfully." });
+app.get("/user", isUserAuth, (req, res) => {
+  res.send({ status: 200, message: "User profile data fetched successfully" });
 });
 
 app.listen("7777", () => {
