@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/vishal-gupta-252310/dev_tinder_api#readme",
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.16.0"
   }
 }
