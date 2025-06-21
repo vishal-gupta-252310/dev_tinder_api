@@ -2,12 +2,28 @@ const express = require("express");
 
 const app = express();
 
-app.use("/hello", (req, res) => {
-  res.send("Hi server is saying hello to you on this endpoint.");
+app.use("/test", (req, res) => {
+  res.send("This is test route.");
 });
 
-app.use((req, res) => {
-  res.send("Server is up and running on 7777.");
+app.post("/user", (req, res) => {
+  res.send({ status: 201, message: "User added successfully." });
+});
+
+app.get("/user", (req, res) => {
+  res.send({ firstName: "Vishal", lastName: "Gupta" });
+});
+
+app.put("/user/:id", (req, res) => {
+  res.send({ status: 200, message: "User updated successfully." });
+});
+
+app.patch("/user/:id", (req, res) => {
+  res.send({ status: 200, message: "User updated successfully." });
+});
+
+app.delete("/user/:id", (req, res) => {
+  res.send({ status: 200, message: "User Deleted successfully." });
 });
 
 app.listen("7777", () => {
