@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const mongodbUri =
-  "mongodb+srv://vishalgupta252310:vishalgupta252310@cluster0.nedg5.mongodb.net/Leap";
+  "mongodb+srv://vishalgupta252310:vishalgupta252310@cluster0.nedg5.mongodb.net/devTinder";
 
 const makeConnectionWithDB = async (err, req, res) => {
   if (err) {
