@@ -1,24 +1,21 @@
 const express = require("express");
-const { isAdminAuth, isUserAuth } = require("./middlewares/auth");
 
 const app = express();
 
-app.use("/admin", isAdminAuth);
+app.use("/", (err, req, res, next) => {
+  if (err) {
+    res.status(500).send("Something went wrong");
+  }
 
-app.post("/user/login", (req, res) => {
-  res.send({ status: 200, message: "Logged in successfully" });
+  next();
 });
-
-app.get("/admin/company", (req, res) => {
-  res.send({ status: 200, message: "Listing of companies" });
-});
-
-app.get("/admin/company/users", (req, res) => {
-  res.send({ status: 200, message: "Listing of users" });
-});
-
-app.get("/user", isUserAuth, (req, res) => {
-  res.send({ status: 200, message: "User profile data fetched successfully" });
+app.get("/getUserData", (req, res) => {
+  try {
+    throw new Error();
+    res.send("Data fetching successfully");
+  } catch (error) {
+    res.send("something went wrong please contact developer");
+  }
 });
 
 app.listen("7777", () => {
