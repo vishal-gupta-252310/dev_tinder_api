@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-
-const GENDER_OPTIONS = ["Male", "Female", "Others"];
+const { GENDER_OPTIONS } = require("../config/modelHelper");
 
 const userSchema = new mongoose.Schema(
   {

@@ -1,32 +1,54 @@
 const express = require("express");
 const app = express();
+const bcrypt = require("bcrypt");
 const makeConnectionWithDB = require("./config/database");
-const userModel = require("./models/user");
+const User = require("./models/user");
 const AppError = require("./utils/AppError");
 const handleGlobalError = require("./middlewares/errorHandler");
 const sendResponse = require("./utils/sendResponse");
 const { toCheckAllowedFields } = require("./utils/common");
 const { userSignupFields } = require("./config/modelHelper");
 const { USER_ERROR_MESSAGES } = require("./config/errorMessage");
+const { validateUser } = require("./utils/validation");
+const validator = require("validator");
 
 app.use(express.json());
 
 // signup new user
 app.post("/signup", async (req, res, next) => {
-  const userData = req.body;
-
   try {
-    const user = new userModel(userData);
-    const isAllowed = toCheckAllowedFields(userSignupFields, userData);
+    // validating data
+    validateUser(req);
 
-    if (!isAllowed) {
-      throw new AppError(
-        400,
-        "Some data is not allowed according to our schema"
-      );
-    }
+    const {
+      firstName,
+      lastName,
+      password,
+      email,
+      profilePhoto,
+      skills,
+      age,
+      gender,
+      userName,
+      about,
+    } = req.body;
 
-    const newUser = await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userInstance = new User({
+      firstName,
+      lastName,
+      password: hashedPassword,
+      email,
+      profilePhoto,
+      skills,
+      age,
+      gender,
+      userName,
+      about: about ?? "",
+    });
+
+    const newUser = await userInstance.save();
     sendResponse(res, {
       statusCode: 201,
       message: "User added successfully.",
@@ -37,6 +59,32 @@ app.post("/signup", async (req, res, next) => {
   }
 });
 
+app.post("/login", async (req, res, next) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!validator.isEmail(email)) {
+      throw new AppError(400, "The email address is not valid.");
+    }
+
+    const foundUser = await User.findOne({ email });
+    if (!foundUser) {
+      throw new AppError(404, "The email or password is incorrect.");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, foundUser?.password);
+    if (!isPasswordValid) {
+      throw new AppError(404, "The email or password is incorrect.");
+    }
+
+    sendResponse(res, {
+      message: "Logged in successfully!!!",
+    });
+  } catch (error) {
+    next(new AppError(400, error.message));
+  }
+});
+
 // to get a user by email
 app.get("/user", async (req, res) => {
   const email = req.query?.email;
@@ -44,7 +92,7 @@ app.get("/user", async (req, res) => {
   if (!email) throw new Error();
 
   try {
-    const user = await userModel.findOne({ email });
+    const user = await User.findOne({ email });
 
     if (!user) {
       res.status(404).send({ status: 404, message: "User not found" });
@@ -59,7 +107,7 @@ app.get("/user", async (req, res) => {
 // get all users listing
 app.get("/feed", async (req, res) => {
   try {
-    const allUsers = await userModel.find({});
+    const allUsers = await User.find({});
 
     if (allUsers.length === 0) {
       res.status(400).send("There are no records");
@@ -78,7 +126,7 @@ app.get("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const user = await userModel.findById(userId);
+    const user = await User.findById(userId);
 
     if (!user) throw new AppError(404, "User not found");
     sendResponse(res, {
@@ -97,7 +145,7 @@ app.delete("/user/:userId", async (req, res) => {
   if (!userId) throw new Error();
 
   try {
-    await userModel.findByIdAndDelete(userId);
+    await User.findByIdAndDelete(userId);
 
     res.status(200).send({ status: 200, message: "User deleted successfully" });
   } catch (error) {
@@ -122,7 +170,7 @@ app.patch("/user/:userId", async (req, res, next) => {
       throw next(new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD));
     }
 
-    const user = await userModel.findByIdAndUpdate(userId, updateFields, {
+    const user = await User.findByIdAndUpdate(userId, updateFields, {
       new: true,
       runValidators: true,
     });
@@ -160,7 +208,7 @@ app.put("/user/:email", async (req, res, next) => {
       throw new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD);
     }
 
-    const user = await userModel.findOneAndUpdate({ email }, updateFields, {
+    const user = await User.findOneAndUpdate({ email }, updateFields, {
       returnDocument: "after",
     });
 

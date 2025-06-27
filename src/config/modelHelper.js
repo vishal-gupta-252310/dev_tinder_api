@@ -11,4 +11,6 @@ const userSignupFields = [
   "profilePhoto",
 ];
 
-module.exports = { userSignupFields };
+const GENDER_OPTIONS = ["Male", "Female", "Others"];
+
+module.exports = { userSignupFields, GENDER_OPTIONS };
