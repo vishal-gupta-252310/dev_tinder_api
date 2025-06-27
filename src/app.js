@@ -2,22 +2,38 @@ const express = require("express");
 const app = express();
 const makeConnectionWithDB = require("./config/database");
 const userModel = require("./models/user");
+const AppError = require("./utils/AppError");
+const handleGlobalError = require("./middlewares/errorHandler");
+const sendResponse = require("./utils/sendResponse");
+const { toCheckAllowedFields } = require("./utils/common");
+const { userSignupFields } = require("./config/modelHelper");
+const { USER_ERROR_MESSAGES } = require("./config/errorMessage");
 
 app.use(express.json());
 
 // signup new user
-app.post("/signup", async (req, res) => {
+app.post("/signup", async (req, res, next) => {
   const userData = req.body;
 
-  // creating an instance of user model with user data
-  const user = new userModel(userData);
   try {
-    const response = await user.save();
-    res
-      .status(201)
-      .send({ user: response, message: "User added successfully." });
+    const user = new userModel(userData);
+    const isAllowed = toCheckAllowedFields(userSignupFields, userData);
+
+    if (!isAllowed) {
+      throw new AppError(
+        400,
+        "Some data is not allowed according to our schema"
+      );
+    }
+
+    const newUser = await user.save();
+    sendResponse(res, {
+      statusCode: 201,
+      message: "User added successfully.",
+      data: newUser,
+    });
   } catch (err) {
-    res.status(400).send("Fail to save user " + err.message);
+    throw next(new AppError(400, err?.message));
   }
 });
 
@@ -61,18 +77,14 @@ app.get("/feed", async (req, res) => {
 app.get("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
 
-  if (!userId) throw new Error();
-
   try {
     const user = await userModel.findById(userId);
 
-    if (!user) {
-      res.status(404).send({ status: 404, message: "User not found" });
-    } else {
-      res
-        .status(200)
-        .send({ user, message: "User fetched successfully", status: 200 });
-    }
+    if (!user) throw new AppError(404, "User not found");
+    sendResponse(res, {
+      message: "User fetched successfully",
+      data: user,
+    });
   } catch (error) {
     res.status(400).send("Failed to send the user");
   }
@@ -80,7 +92,7 @@ app.get("/user/:userId", async (req, res) => {
 
 // to delete the user by id
 app.delete("/user/:userId", async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req.params?.userId;
 
   if (!userId) throw new Error();
 
@@ -94,58 +106,77 @@ app.delete("/user/:userId", async (req, res) => {
 });
 
 // to update the user
-app.patch("/user/:userId", async (req, res) => {
+app.patch("/user/:userId", async (req, res, next) => {
   const userId = req.params.userId;
   const updateFields = req.body;
 
-  if (!updateFields) throw new Error();
+  if (!updateFields) throw new AppError(400, USER_ERROR_MESSAGES.NO_PAYLOAD);
 
   try {
-    const user = await userModel.findByIdAndUpdate(
-      { _id: userId },
-      updateFields,
-      { returnDocument: "after" }
+    const isAllowed = toCheckAllowedFields(
+      userSignupFields.filter((item) => item != "email"),
+      updateFields
     );
 
-    if (!user) {
-      res.status(404).send({ status: 404, message: "User not found" });
-    } else {
-      res.send({ user, status: 200, message: "User updated successfully" });
+    if (!isAllowed) {
+      throw next(new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD));
     }
+
+    const user = await userModel.findByIdAndUpdate(userId, updateFields, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user)
+      throw next(new AppError(400, USER_ERROR_MESSAGES.USER_NOT_FOUND));
+    sendResponse(res, {
+      data: user,
+      message: USER_ERROR_MESSAGES.USER_UPDATED,
+    });
   } catch (error) {
-    res.status(400).send({ status: 400, message: "Failed to update the user" });
+    throw new AppError(
+      400,
+      error.message ?? USER_ERROR_MESSAGES.USER_UPDATE_FAIL
+    );
   }
 });
 
 // update user by email
-app.put("/user/:email", async (req, res) => {
+app.put("/user/:email", async (req, res, next) => {
   const updateFields = req.body;
   const email = req.params.email;
 
-  if (!updateFields || !email) throw new Error();
+  if (!updateFields || !email) {
+    throw new AppError(400, USER_ERROR_MESSAGES.NO_PAYLOAD);
+  }
 
   try {
+    const isAllowed = toCheckAllowedFields(
+      userSignupFields.filter((item) => item != "email"),
+      updateFields
+    );
+
+    if (!isAllowed) {
+      throw new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD);
+    }
+
     const user = await userModel.findOneAndUpdate({ email }, updateFields, {
       returnDocument: "after",
     });
-    console.log(user);
 
-    if (!user) {
-      res.status(404).send({ status: 404, message: "User not found" });
-    } else {
-      res.send({ user, status: 200, message: "User updated successfully" });
-    }
+    if (!user)
+      throw next(new AppError(404, USER_ERROR_MESSAGES.USER_NOT_FOUND));
+    sendResponse(res, {
+      data: user,
+      message: USER_ERROR_MESSAGES.USER_UPDATED,
+    });
   } catch (error) {
-    es.status(400).send({ status: 400, message: "Failed to update the user" });
+    throw new AppError(400, USER_ERROR_MESSAGES.USER_UPDATE_FAIL);
   }
 });
 
 // handle unexpected errors
-app.use("/", (err, req, res, next) => {
-  if (err) {
-    res.status(500).send("Something went wrong");
-  }
-});
+app.use("/", handleGlobalError);
 
 makeConnectionWithDB()
   .then(() => {
