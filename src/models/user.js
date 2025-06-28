@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcrypt");
 const { GENDER_OPTIONS } = require("../config/modelHelper");
+const AppError = require("../utils/AppError");
+const { generateJwtToken } = require("../utils/common");
 
 const userSchema = new mongoose.Schema(
   {
@@ -104,6 +107,30 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+/**
+ * User schema method to generate jwt token
+ * @returns string
+ */
+userSchema.methods.getJwtToken = async function () {
+  const user = this;
+  const token = await generateJwtToken({ id: user?._id });
+  return token;
+};
+
+/**
+ * To check password is valid or not
+ * @param {string} userInputPassword
+ * @returns bool
+ */
+userSchema.methods.isPasswordValid = async function (userInputPassword) {
+  const hashedPassword = this.password;
+  const isPasswordValid = await bcrypt.compare(
+    userInputPassword,
+    hashedPassword
+  );
+  return isPasswordValid;
+};
 
 const User = mongoose.model("User", userSchema);
 

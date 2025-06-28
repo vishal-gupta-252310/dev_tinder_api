@@ -1,18 +1,33 @@
+// third party
 const express = require("express");
-const app = express();
 const bcrypt = require("bcrypt");
-const makeConnectionWithDB = require("./config/database");
-const User = require("./models/user");
-const AppError = require("./utils/AppError");
+const validator = require("validator");
+const cookieParser = require("cookie-parser");
+
+// middlewares
 const handleGlobalError = require("./middlewares/errorHandler");
+const { isUserAuth } = require("./middlewares/auth");
+
+// utils
+const AppError = require("./utils/AppError");
 const sendResponse = require("./utils/sendResponse");
 const { toCheckAllowedFields } = require("./utils/common");
+const { validateUser } = require("./utils/validation");
+
+// config
+const makeConnectionWithDB = require("./config/database");
 const { userSignupFields } = require("./config/modelHelper");
 const { USER_ERROR_MESSAGES } = require("./config/errorMessage");
-const { validateUser } = require("./utils/validation");
-const validator = require("validator");
 
+// models
+const User = require("./models/user");
+
+// instance
+const app = express();
+
+// global middleware used
 app.use(express.json());
+app.use(cookieParser());
 
 // signup new user
 app.post("/signup", async (req, res, next) => {
@@ -72,11 +87,17 @@ app.post("/login", async (req, res, next) => {
       throw new AppError(404, "The email or password is incorrect.");
     }
 
-    const isPasswordValid = await bcrypt.compare(password, foundUser?.password);
+    const isPasswordValid = await foundUser.isPasswordValid(password);
     if (!isPasswordValid) {
       throw new AppError(404, "The email or password is incorrect.");
     }
 
+    const token = await foundUser.getJwtToken();
+
+    // send cookie
+    res.cookie("token", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     sendResponse(res, {
       message: "Logged in successfully!!!",
     });
@@ -104,8 +125,15 @@ app.get("/user", async (req, res) => {
   }
 });
 
+app.get("/profile", isUserAuth, async (req, res) => {
+  sendResponse(res, {
+    message: "User profile data fetched successfully!!",
+    data: req.user,
+  });
+});
+
 // get all users listing
-app.get("/feed", async (req, res) => {
+app.get("/feed", isUserAuth, async (req, res) => {
   try {
     const allUsers = await User.find({});
 
@@ -138,89 +166,10 @@ app.get("/user/:userId", async (req, res) => {
   }
 });
 
-// to delete the user by id
-app.delete("/user/:userId", async (req, res) => {
-  const userId = req.params?.userId;
-
-  if (!userId) throw new Error();
-
-  try {
-    await User.findByIdAndDelete(userId);
-
-    res.status(200).send({ status: 200, message: "User deleted successfully" });
-  } catch (error) {
-    res.status(400).send({ status: 400, message: "failed to delete user" });
-  }
-});
-
-// to update the user
-app.patch("/user/:userId", async (req, res, next) => {
-  const userId = req.params.userId;
-  const updateFields = req.body;
-
-  if (!updateFields) throw new AppError(400, USER_ERROR_MESSAGES.NO_PAYLOAD);
-
-  try {
-    const isAllowed = toCheckAllowedFields(
-      userSignupFields.filter((item) => item != "email"),
-      updateFields
-    );
-
-    if (!isAllowed) {
-      throw next(new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD));
-    }
-
-    const user = await User.findByIdAndUpdate(userId, updateFields, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!user)
-      throw next(new AppError(400, USER_ERROR_MESSAGES.USER_NOT_FOUND));
-    sendResponse(res, {
-      data: user,
-      message: USER_ERROR_MESSAGES.USER_UPDATED,
-    });
-  } catch (error) {
-    throw new AppError(
-      400,
-      error.message ?? USER_ERROR_MESSAGES.USER_UPDATE_FAIL
-    );
-  }
-});
-
-// update user by email
-app.put("/user/:email", async (req, res, next) => {
-  const updateFields = req.body;
-  const email = req.params.email;
-
-  if (!updateFields || !email) {
-    throw new AppError(400, USER_ERROR_MESSAGES.NO_PAYLOAD);
-  }
-
-  try {
-    const isAllowed = toCheckAllowedFields(
-      userSignupFields.filter((item) => item != "email"),
-      updateFields
-    );
-
-    if (!isAllowed) {
-      throw new AppError(400, USER_ERROR_MESSAGES.ALLOWED_FIELD);
-    }
-
-    const user = await User.findOneAndUpdate({ email }, updateFields, {
-      returnDocument: "after",
-    });
-
-    if (!user)
-      throw next(new AppError(404, USER_ERROR_MESSAGES.USER_NOT_FOUND));
-    sendResponse(res, {
-      data: user,
-      message: USER_ERROR_MESSAGES.USER_UPDATED,
-    });
-  } catch (error) {
-    throw new AppError(400, USER_ERROR_MESSAGES.USER_UPDATE_FAIL);
-  }
+app.post("/sendConnectionRequest", isUserAuth, (req, res) => {
+  sendResponse(res, {
+    message: `${req.user.firstName} send connection request successfully.`,
+  });
 });
 
 // handle unexpected errors
