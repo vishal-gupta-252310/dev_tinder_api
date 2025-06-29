@@ -94,4 +94,46 @@ const isAllowedEditFields = (req) => {
   return isAllowed;
 };
 
-module.exports = { validateSignupData, validateEditFields };
+const validatePasswordChangeData = (req) => {
+  if (!req.body || !req.body?.oldPassword || !req.body?.newPassword) {
+    throw new AppError(400, "The old and new password is required.");
+  }
+
+  const { newPassword } = req.body;
+
+  if (newPassword.length < 8 || newPassword.length > 50) {
+    throw new AppError(
+      400,
+      "The new password should be between 8 to 50 characters."
+    );
+  }
+
+  if (!validator.isStrongPassword(newPassword)) {
+    throw new AppError(400, "The new password is not strong password.");
+  }
+};
+
+const validateUserName = (req) => {
+  if (!req.body || !req.body?.userName) {
+    throw new AppError(400, "The user name is required.");
+  }
+  const { userName } = req.body;
+
+  if (userName.length < 3 || userName.length > 50) {
+    throw new AppError(
+      400,
+      "The user name should be between 3 to 50 characters."
+    );
+  }
+
+  if (!/^[a-z0-9]+$/i.test(userName)) {
+    throw new AppError(400, "The user name is not in proper format.");
+  }
+};
+
+module.exports = {
+  validateSignupData,
+  validateEditFields,
+  validatePasswordChangeData,
+  validateUserName,
+};

@@ -1,12 +1,12 @@
 // third party
 const express = require("express");
-const bcrypt = require("bcrypt");
 const validator = require("validator");
 
 // utils
 const { validateSignupData } = require("../utils/validation");
 const AppError = require("../utils/AppError");
 const sendResponse = require("../utils/sendResponse");
+const { generateHashData } = require("../utils/common");
 
 // models
 const User = require("../models/user");
@@ -21,7 +21,7 @@ authRouter.post("/auth/signup", async (req, res, next) => {
 
     const { firstName, lastName, password, email, gender, userName } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await generateHashData(password);
 
     const userInstance = new User({
       firstName,
@@ -53,12 +53,12 @@ authRouter.post("/auth/login", async (req, res, next) => {
 
     const foundUser = await User.findOne({ email });
     if (!foundUser) {
-      throw new AppError(404, "The email or password is incorrect.");
+      throw new AppError(401, "The email or password is incorrect.");
     }
 
     const isPasswordValid = await foundUser.isPasswordValid(password);
     if (!isPasswordValid) {
-      throw new AppError(404, "The email or password is incorrect.");
+      throw new AppError(401, "The email or password is incorrect.");
     }
 
     const token = await foundUser.getJwtToken();
