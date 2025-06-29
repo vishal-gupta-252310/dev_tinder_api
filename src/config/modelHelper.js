@@ -1,16 +1,22 @@
-const userSignupFields = [
+const USER_SIGNUP_FIELDS = [
   "firstName",
   "lastName",
-  "age",
   "gender",
   "password",
   "email",
   "userName",
+];
+
+const USER_EDIT_FIELDS = [
+  "firstName",
+  "lastName",
+  "gender",
   "about",
-  "skills",
   "profilePhoto",
+  "age",
+  "skills",
 ];
 
 const GENDER_OPTIONS = ["Male", "Female", "Others"];
 
-module.exports = { userSignupFields, GENDER_OPTIONS };
+module.exports = { USER_SIGNUP_FIELDS, GENDER_OPTIONS, USER_EDIT_FIELDS };

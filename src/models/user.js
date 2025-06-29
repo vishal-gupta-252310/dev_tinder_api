@@ -29,11 +29,12 @@ const userSchema = new mongoose.Schema(
       default: 18,
       min: 18,
       max: 60,
+      default: 18,
     },
     gender: {
       type: String,
-      required: true,
       enum: GENDER_OPTIONS,
+      required: true,
     },
     password: {
       type: String,
@@ -70,7 +71,7 @@ const userSchema = new mongoose.Schema(
     },
     skills: {
       type: [String],
-      default: ["JS", "TS", "NodeJS"],
+      default: [],
       validate: {
         validator: function (arr) {
           if (arr.length > 10) {
@@ -103,6 +104,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minLength: 20,
       maxLength: 500,
+      default: "I am Professional developer using dev tinder",
     },
   },
   { timestamps: true }
