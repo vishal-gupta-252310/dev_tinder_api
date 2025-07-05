@@ -1,6 +1,6 @@
 # Dev Tinder Api
 
-### authRouter
+### authRouter // done
 
 - POST /auth/signup
 - POST /auth/login
@@ -8,10 +8,11 @@
 
 ### connectionRequestRouter
 
-- POST /requests/:userId/interested
-- POST /requests/:userId/ignored
-- POST /requests/:userId/accepted
-- POST /requests/:userId/rejected
+- POST /requests/:toUserId/interested
+- POST /requests/:toUserId/ignored
+
+- POST /requests/:toUserId/accepted
+- POST /requests/:toUserId/rejected
 
 ### userRouter
 
@@ -20,7 +21,7 @@
 - GET /users/me/feed
 - POST /users/:userId/block
 
-### profileRouter
+### profileRouter // done
 
 - GET /profile
 - PATCH /profile

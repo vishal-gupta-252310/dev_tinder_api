@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
+      // created an index on gender field
+      index: true,
       enum: GENDER_OPTIONS,
       required: true,
     },
