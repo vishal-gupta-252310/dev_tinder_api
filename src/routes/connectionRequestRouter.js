@@ -74,4 +74,44 @@ connectionRequestRouter.post(
   }
 );
 
+connectionRequestRouter.put(
+  "/requests/:requestId/:status",
+  isUserAuth,
+  async (req, res, next) => {
+    try {
+      const requestId = req.params.requestId;
+      const status = req.params.status;
+      const loggedUser = req.user;
+
+      if (!requestId || !status) {
+        throw new AppError(400, "Status and request both required.");
+      }
+
+      const allowedStatus = ["accepted", "rejected"];
+      if (!allowedStatus.includes(status)) {
+        throw new AppError(400, `The ${status} is invalid status.`);
+      }
+
+      const foundRequest = await ConnectionRequest.findOne({
+        _id: requestId,
+        toUserId: loggedUser?._id,
+        status: "interested",
+      });
+      if (!foundRequest) {
+        throw new AppError(404, "The request is not exists!");
+      }
+
+      foundRequest.status = status;
+
+      const data = await foundRequest.save();
+      sendResponse(res, {
+        message: `Connection request ${status} successfully.`,
+        data,
+      });
+    } catch (error) {
+      next(new AppError(400, error.message));
+    }
+  }
+);
+
 module.exports = connectionRequestRouter;

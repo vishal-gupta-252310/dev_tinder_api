@@ -11,8 +11,8 @@
 - POST /requests/:toUserId/interested
 - POST /requests/:toUserId/ignored
 
-- POST /requests/:toUserId/accepted
-- POST /requests/:toUserId/rejected
+- PUT /requests/:requestId/accepted
+- PUT /requests/:requestId/rejected
 
 ### userRouter
 
