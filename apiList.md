@@ -6,7 +6,7 @@
 - POST /auth/login
 - POST /auth/logout
 
-### connectionRequestRouter
+### connectionRequestRouter //done
 
 - POST /requests/:toUserId/interested
 - POST /requests/:toUserId/ignored
