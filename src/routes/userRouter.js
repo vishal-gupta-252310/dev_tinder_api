@@ -91,6 +91,16 @@ userRouter.get("/users/me/feed", isUserAuth, async (req, res) => {
   // get all users after excluding the hideUsersFeed user ids and self
   try {
     const loggedUser = req.user;
+    const pageNumber = parseInt(req.query?.page) || 1;
+    let limit = parseInt(req.query?.limit) || 10;
+    limit = limit > 50 ? 50 : limit;
+
+    console.log(pageNumber);
+    if ((pageNumber && pageNumber < 1) || (limit && limit < 1)) {
+      throw new AppError(400, "Please give valid values for page and limit");
+    }
+
+    const skip = (pageNumber - 1) * limit;
     const requests = await ConnectionRequest.find({
       $and: [
         { status: { $in: ["interested", "ignored", "accepted", "rejected"] } },
@@ -110,7 +120,10 @@ userRouter.get("/users/me/feed", isUserAuth, async (req, res) => {
         { _id: { $nin: Array.from(hideUsersFeed) } },
         { _id: { $ne: loggedUser._id } },
       ],
-    }).select(USER_SAFE_PUBLIC_DATA);
+    })
+      .select(USER_SAFE_PUBLIC_DATA)
+      .skip(skip)
+      .limit(limit);
 
     res.json({
       status: "success",

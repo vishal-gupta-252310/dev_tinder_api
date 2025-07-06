@@ -27,3 +27,11 @@
 - PATCH /profile
 - PUT /profile/password
 - PUT /profile/username
+
+<!-- Notes -->
+
+/users/me/feed?page=1&limit=10 => .skip(0).limit(10) => 1 to 10
+/users/me/feed?page=2&limit=10 => .skip(10).limit(10) => 11 to 20
+/users/me/feed?page=3&limit=10 => .skip(20).limit(10) => 21 to 30
+
+logic for skip = (page - 1) \* limit
