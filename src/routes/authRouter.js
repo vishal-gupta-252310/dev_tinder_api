@@ -10,6 +10,7 @@ const { generateHashData } = require("../utils/common");
 
 // models
 const User = require("../models/user");
+const { getUserData } = require("../transformers/user");
 
 const authRouter = express.Router();
 
@@ -69,6 +70,7 @@ authRouter.post("/auth/login", async (req, res, next) => {
     });
     sendResponse(res, {
       message: "Logged in successfully!!!",
+      data: getUserData(foundUser),
     });
   } catch (error) {
     next(new AppError(400, error.message));
@@ -78,7 +80,7 @@ authRouter.post("/auth/login", async (req, res, next) => {
 authRouter.post("/auth/logout", (req, res) => {
   res.clearCookie("token");
   sendResponse(res, {
-    message: "Logout successful",
+    message: "Logout successfully!!!",
   });
 });
 
