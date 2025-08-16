@@ -43,12 +43,28 @@ const validateEditFields = (req) => {
     req.body;
   let validations = [];
 
+  if (Object.values(req.body).length === 0) {
+    Object.values(req.body).forEach((key) => {
+      if (!key) {
+        validations.push(`${key} is required.`);
+      }
+    });
+  }
+  
   if (firstName && (firstName.length < 3 || firstName.length > 50)) {
     validations.push("The first name should be between 3 to 50 characters.");
   }
 
+  if (firstName && !/^[A-Z]+$/i.test(firstName)) {
+    validations.push("First name can only contain alphabetic characters.");
+  }
+
   if (lastName && (lastName.length < 3 || lastName.length > 50)) {
     validations.push("The last name should be between 3 to 50 characters.");
+  }
+
+  if (lastName && !/^[A-Z]+$/i.test(lastName)) {
+    validations.push("Last name can only contain alphabetic characters.");
   }
 
   if (age && age < 18) {
@@ -72,7 +88,7 @@ const validateEditFields = (req) => {
   }
 
   if (validations.length > 0) {
-    throw new AppError(400, "validations is failed", validations);
+    throw new AppError(400, "Validation failed", validations);
   }
 };
 
@@ -83,7 +99,7 @@ const validateEditFields = (req) => {
  */
 const isAllowedEditFields = (req) => {
   if (!req.body) {
-    throw new AppError(400, USER_ERROR_MESSAGES.NO_PAYLOAD);
+    return false;
   }
 
   // check allowed fields

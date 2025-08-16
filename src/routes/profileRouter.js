@@ -29,7 +29,7 @@ profileRouter.get("/profile", isUserAuth, async (req, res) => {
   });
 });
 
-profileRouter.patch("/profile", isUserAuth, async (req, res) => {
+profileRouter.patch("/profile", isUserAuth, async (req, res, next) => {
   try {
     validateEditFields(req);
 
@@ -40,12 +40,8 @@ profileRouter.patch("/profile", isUserAuth, async (req, res) => {
       message: `${user.firstName}, your profile update successfully.`,
       data: user,
     });
-  } catch ({ message = "", validations = [] }) {
-    res.send({
-      status: "fail",
-      message,
-      validations,
-    });
+  } catch (error) {
+    throw next(error);
   }
 });
 

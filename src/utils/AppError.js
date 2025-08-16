@@ -5,6 +5,7 @@ class AppError extends Error {
     this.message = message;
     this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
     this.isOperational = true;
+    this.validations = [];
 
     if (validations) {
       this.validations = validations;
