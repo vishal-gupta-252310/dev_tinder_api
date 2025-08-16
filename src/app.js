@@ -34,8 +34,8 @@ app.use("/", profileRouter);
 app.use("/", connectionRequestRouter);
 app.use("/", userRouter);
 
-// handle unexpected errors
-app.use("/", handleGlobalError);
+// handle unexpected errors (must be last, no path)
+app.use(handleGlobalError);
 
 makeConnectionWithDB()
   .then(() => {

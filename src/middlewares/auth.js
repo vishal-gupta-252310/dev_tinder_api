@@ -7,27 +7,21 @@ const isUserAuth = async (req, res, next) => {
     const { token } = req.cookies;
 
     if (!token) {
-      throw res
-        .status(401)
-        .send({
-          message: "Token is not valid please login again.",
-          status: 401,
-        });
+      return next(new AppError(401, "Token is missing. Please login again."));
     }
 
     const decodedMessage = await jwt.verify(token, "Vishal@1234");
     const { id } = decodedMessage;
 
-    const userFound = await User.findById(id);
-
+    const userFound = await User.findById(decodedMessage.id);
     if (!userFound) {
-      throw new AppError(404, "The user is not found in the system.");
+      return next(new AppError(404, "User not found in the system."));
     }
 
     req.user = userFound;
     next();
   } catch (error) {
-    throw new AppError(400, error.message);
+    next(new AppError(500, "Internal Server Error: " + error.message));
   }
 };
 

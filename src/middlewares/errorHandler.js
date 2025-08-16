@@ -1,11 +1,14 @@
 const handleGlobalError = (err, req, res, next) => {
-  if (err) {
-    res.status(err.statusCode).send({
-      status: err.status,
-      message: err.message,
-      statusCode: err.statusCode,
-    });
-  }
+  // Default values for unexpected errors
+  const statusCode = err.statusCode || 500;
+  const status = err.status || "error";
+  const message = err.message || "Something went wrong!";
+
+  res.status(statusCode).json({
+    status,
+    message,
+    statusCode,
+  });
 };
 
 module.exports = handleGlobalError;

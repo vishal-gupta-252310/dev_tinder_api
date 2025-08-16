@@ -79,7 +79,7 @@ userRouter.get("/users/me/connections", isUserAuth, async (req, res) => {
 });
 
 // to get the feed list of logged user
-userRouter.get("/users/me/feed", isUserAuth, async (req, res) => {
+userRouter.get("/users/me/feed", isUserAuth, async (req, res, next) => {
   // to get logged user
   // get the user listing where
   // connected user not come
@@ -95,7 +95,6 @@ userRouter.get("/users/me/feed", isUserAuth, async (req, res) => {
     let limit = parseInt(req.query?.limit) || 10;
     limit = limit > 50 ? 50 : limit;
 
-    console.log(pageNumber);
     if ((pageNumber && pageNumber < 1) || (limit && limit < 1)) {
       throw new AppError(400, "Please give valid values for page and limit");
     }
@@ -131,7 +130,7 @@ userRouter.get("/users/me/feed", isUserAuth, async (req, res) => {
       message: "Feed fetched successfully.",
     });
   } catch (error) {
-    throw new AppError(400, error.message);
+    throw next(new AppError(400, error.message));
   }
 });
 
