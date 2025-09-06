@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const mongooseLeanVirtual = require("mongoose-lean-virtuals");
 const bcrypt = require("bcrypt");
 const { GENDER_OPTIONS } = require("../config/modelHelper");
 const AppError = require("../utils/AppError");
@@ -109,7 +110,7 @@ const userSchema = new mongoose.Schema(
       default: "I am Professional developer using dev tinder",
     },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
 /**
@@ -121,6 +122,10 @@ userSchema.methods.getJwtToken = async function () {
   const token = await generateJwtToken({ id: user?._id });
   return token;
 };
+
+userSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`;
+});
 
 /**
  * To check password is valid or not
@@ -135,6 +140,8 @@ userSchema.methods.isPasswordValid = async function (userInputPassword) {
   );
   return isPasswordValid;
 };
+
+userSchema.plugin(mongooseLeanVirtual);
 
 const User = mongoose.model("User", userSchema);
 

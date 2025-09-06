@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
+const mongooseLeanVirtual = require("mongoose-lean-virtuals");
 
 const connectionRequestSchema = new mongoose.Schema(
   {
@@ -35,6 +36,12 @@ connectionRequestSchema.pre("save", function (next) {
     throw new AppError(400, "Connection request can't be sent to yourself.");
   next();
 });
+
+connectionRequestSchema.virtual("connectionId").get(function () {
+  return this._id;
+});
+
+connectionRequestSchema.plugin(mongooseLeanVirtual);
 
 const ConnectionRequest = mongoose.model(
   "ConnectionRequest",

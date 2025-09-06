@@ -114,4 +114,25 @@ connectionRequestRouter.put(
   }
 );
 
+connectionRequestRouter.delete(
+  "/requests/:requestId",
+  isUserAuth,
+  async (req, res, next) => {
+    try {
+      const requestId = req.params.requestId;
+
+      if (!requestId) throw new AppError(400, "The request id is required.");
+
+      const response = await ConnectionRequest.deleteOne({ _id: requestId });
+
+      console.log(response);
+      sendResponse(res, {
+        message: "Connection request deleted successfully.",
+      });
+    } catch (error) {
+      next(new AppError(400, error.message));
+    }
+  }
+);
+
 module.exports = connectionRequestRouter;

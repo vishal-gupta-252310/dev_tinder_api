@@ -58,13 +58,16 @@ userRouter.get("/users/me/connections", isUserAuth, async (req, res) => {
       ],
     })
       .populate("fromUserId", USER_SAFE_PUBLIC_DATA)
-      .populate("toUserId", USER_SAFE_PUBLIC_DATA);
+      .populate("toUserId", USER_SAFE_PUBLIC_DATA)
+      .lean({ virtuals: true });
 
     const filteredUsers = connections.map((row) => {
       if (row?.fromUserId._id.equals(loggedUser?._id)) {
+        row.toUserId.connectionId = row.connectionId;
         return row.toUserId;
       }
 
+      row.fromUserId.connectionId = row.connectionId;
       return row.fromUserId;
     });
 
@@ -122,7 +125,8 @@ userRouter.get("/users/me/feed", isUserAuth, async (req, res, next) => {
     })
       .select(USER_SAFE_PUBLIC_DATA)
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean({ virtuals: true });
 
     res.json({
       status: "success",
