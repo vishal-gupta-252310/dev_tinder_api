@@ -39,7 +39,7 @@ app.use(handleGlobalError);
 
 makeConnectionWithDB()
   .then(() => {
-    app.listen("7777", () => {
+    app.listen("7777", "0.0.0.0", () => {
       console.log("Server is listening on port 7777.");
     });
   })
