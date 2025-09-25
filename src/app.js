@@ -24,13 +24,20 @@ app.use(cookieParser());
 
 let whitelist = [
   "https://devconnect.fun",
+  "https://www.devconnect.fun",
   "http://devconnect.fun",
   "http://localhost:5173",
 ];
 
 const corsConfigurations = {
   origin: function (origin, callback) {
-    if (whitelist.some((domain) => origin.startsWith(domain))) {
+    // allow requests with no origin (like curl or server-to-server)
+    if (!origin) return callback(null, true);
+
+    // check if origin starts with any of the whitelisted domains
+    const isAllowed = whitelist.some((domain) => origin.startsWith(domain));
+
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -38,6 +45,8 @@ const corsConfigurations = {
   },
   credentials: true,
 };
+
+app.use(cors(corsConfigurations));
 app.use(cors(corsConfigurations));
 
 // routes
