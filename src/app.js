@@ -22,8 +22,20 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
+let whitelist = [
+  "https://devconnect.fun",
+  "http://devconnect.fun",
+  "http://localhost:5173",
+];
+
 const corsConfigurations = {
-  origin: "http://localhost:5173",
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 };
 app.use(cors(corsConfigurations));
