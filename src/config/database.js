@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
+const config = require("./environment");
 
-const mongodbUri =
-  "mongodb+srv://vishalgupta252310:vishalgupta252310@cluster0.nedg5.mongodb.net/devTinder";
+const mongodbUri = config.mongoDbUri;
 
 const makeConnectionWithDB = async (err, req, res) => {
   if (err) {

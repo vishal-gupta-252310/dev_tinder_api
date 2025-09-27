@@ -1,7 +1,12 @@
+const dotenv = require("dotenv");
+
 // third party
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+
+// env variables
+dotenv.config();
 
 // middlewares
 const handleGlobalError = require("./middlewares/errorHandler");
