@@ -3,7 +3,6 @@ const validator = require("validator");
 const mongooseLeanVirtual = require("mongoose-lean-virtuals");
 const bcrypt = require("bcrypt");
 const { GENDER_OPTIONS } = require("../config/modelHelper");
-const AppError = require("../utils/AppError");
 const { generateJwtToken } = require("../utils/common");
 
 const userSchema = new mongoose.Schema(

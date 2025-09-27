@@ -4,6 +4,9 @@ const config = {
   mongoDbUri: process.env.MONGO_DB_URI,
   awsSesKey: process.env.AWS_SES_KEY,
   awsSecretSesAccessKey: process.env.AWS_SECRET_SES_ACCESS_KEY,
+  jwtSecret: process.env.JWT_SIGN_SECRET_KEY,
+  jwtExpiryTime: process.env.JWT_EXPIRY_TIME,
+  hashSaltRounds: process.env.HASH_SALT_ROUNDS ?? 10,
 };
 
 module.exports = config;

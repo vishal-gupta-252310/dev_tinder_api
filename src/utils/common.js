@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const AppError = require("./AppError");
-const JWT_SIGN_SECRET_KEY = "Vishal@1234";
-const JWT_EXPIRY_TIME = "7d";
+const config = require("../config/environment");
 
 /**
  * common function to generate jwt token
@@ -10,8 +9,8 @@ const JWT_EXPIRY_TIME = "7d";
  * @returns
  */
 const generateJwtToken = async (tokenSecretData) => {
-  const token = await jwt.sign(tokenSecretData, JWT_SIGN_SECRET_KEY, {
-    expiresIn: JWT_EXPIRY_TIME,
+  const token = await jwt.sign(tokenSecretData, config.jwtSecret, {
+    expiresIn: config.jwtExpiryTime,
   });
 
   if (!token) {
@@ -26,7 +25,10 @@ const generateJwtToken = async (tokenSecretData) => {
  * @param {string} data
  * @param {number} saltRound
  */
-const generateHashData = async (data = "", saltRound = 10) => {
+const generateHashData = async (
+  data = "",
+  saltRound = config.hashSaltRounds
+) => {
   if (!data) throw new AppError(400, "Please provide hashing data.");
 
   const hashData = await bcrypt.hash(data, saltRound);

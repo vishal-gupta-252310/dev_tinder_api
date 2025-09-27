@@ -1,8 +1,9 @@
 const AppError = require("../utils/AppError");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const config = require("../config/environment");
 
-const isUserAuth = async (req, res, next) => {
+const isUserAuth = async (req, _, next) => {
   try {
     const { token } = req.cookies;
 
@@ -10,8 +11,7 @@ const isUserAuth = async (req, res, next) => {
       return next(new AppError(401, "Token is missing. Please login again."));
     }
 
-    const decodedMessage = await jwt.verify(token, "Vishal@1234");
-    const { id } = decodedMessage;
+    const decodedMessage = await jwt.verify(token, config.jwtSecret);
 
     const userFound = await User.findById(decodedMessage.id);
     if (!userFound) {
