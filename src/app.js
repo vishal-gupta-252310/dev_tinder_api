@@ -69,8 +69,6 @@ app.use("/", profileRouter);
 app.use("/", connectionRequestRouter);
 app.use("/", userRouter);
 
-console.log("Environment:", process.env.NODE_ENV);
-
 // handle unexpected errors (must be last, no path)
 app.use(handleGlobalError);
 

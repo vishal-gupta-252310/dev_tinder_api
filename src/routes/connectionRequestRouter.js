@@ -12,6 +12,9 @@ const sendResponse = require("../utils/sendResponse");
 const User = require("../models/user");
 const ConnectionRequest = require("../models/connectionRequest");
 const { sendEmail } = require("../utils/sendEmail");
+const {
+  getConnectionRequestTemplate,
+} = require("../templates/connectionRequest");
 
 const connectionRequestRouter = express.Router();
 
@@ -51,7 +54,6 @@ connectionRequestRouter.post(
       });
 
       if (existingConnectionReq) {
-        console.log(existingConnectionReq);
         throw new AppError(400, "Connection request already exists!!.");
       }
 
@@ -65,11 +67,14 @@ connectionRequestRouter.post(
 
       // send email
       const emailSendResponse = await sendEmail({
-        toAddress: "vishalgupta252310@gmail.com",
+        toAddress: validUser.email,
         fromAddress: process.env.FROM_EMAIL_ADDRESS,
-        content: `<h1>Hi ${validUser.firstName},</h1>
-        <p>You have a new connection request.</p>
-        `,
+        content: getConnectionRequestTemplate({
+          firstName: validUser.firstName,
+          requesterName: req.user.fullName,
+        }),
+        isHtmlContent: true,
+        Subject: "New connection request received",
       });
 
       console.log("Email sent status:", emailSendResponse);
