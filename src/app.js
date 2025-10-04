@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 // env variables
-dotenv.config();
+dotenv.config({ path: "./.env" });
 
 // middlewares
 const handleGlobalError = require("./middlewares/errorHandler");
@@ -23,9 +23,8 @@ const userRouter = require("./routes/userRouter");
 // instance
 const app = express();
 
-// global middleware used
-app.use(express.json());
 app.use(cookieParser());
+app.use(express.json());
 
 let whitelist = [
   "https://devconnect.fun",
@@ -36,23 +35,33 @@ let whitelist = [
 
 const corsConfigurations = {
   origin: function (origin, callback) {
+    console.log("CORS checking origin:", origin);
     // allow requests with no origin (like curl or server-to-server)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log("No origin, allowing request");
+      return callback(null, true);
+    }
 
     // check if origin starts with any of the whitelisted domains
     const isAllowed = whitelist.some((domain) => origin.startsWith(domain));
+    console.log("Origin allowed?", isAllowed);
 
     if (isAllowed) {
       callback(null, true);
     } else {
+      console.log("CORS error: origin not allowed");
       callback(new Error("Not allowed by CORS"));
     }
   },
   credentials: true,
 };
+app.use(cors(corsConfigurations));
 
-app.use(cors(corsConfigurations));
-app.use(cors(corsConfigurations));
+// logging middleware
+app.use((req, _, next) => {
+  console.log("Request received:", req.path, req.method);
+  next();
+});
 
 // routes
 app.use("/", authRouter);
@@ -60,15 +69,43 @@ app.use("/", profileRouter);
 app.use("/", connectionRequestRouter);
 app.use("/", userRouter);
 
+console.log("Environment:", process.env.NODE_ENV);
+
 // handle unexpected errors (must be last, no path)
 app.use(handleGlobalError);
 
+let server = null;
+
 makeConnectionWithDB()
   .then(() => {
-    app.listen("7777", "0.0.0.0", () => {
-      console.log("Server is listening on port 7777.");
+    server = app.listen(process.env.PORT ?? 7777, process.env.HOST, () => {
+      console.log("Server is listening on port " + (process.env.PORT || 7777));
     });
   })
   .catch(() => {
-    console.error("something went wrong");
+    console.log("Failed to connect with DB, server not started.");
   });
+
+/**
+ * Closes the server and exits the process
+ */
+const closeServer = () => {
+  if (server) {
+    server.close(() => {
+      console.log("Server closed");
+      process.exit(0);
+    });
+  }
+};
+
+process.on("SIGINT", () => {
+  closeServer();
+});
+
+process.on("SIGTERM", () => {
+  closeServer();
+});
+
+process.on("SIGTSTP", () => {
+  closeServer();
+});

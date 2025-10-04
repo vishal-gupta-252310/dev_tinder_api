@@ -11,6 +11,7 @@ const sendResponse = require("../utils/sendResponse");
 // models
 const User = require("../models/user");
 const ConnectionRequest = require("../models/connectionRequest");
+const { sendEmail } = require("../utils/sendEmail");
 
 const connectionRequestRouter = express.Router();
 
@@ -61,6 +62,18 @@ connectionRequestRouter.post(
       });
 
       await request.save();
+
+      // send email
+      const emailSendResponse = await sendEmail({
+        toAddress: "vishalgupta252310@gmail.com",
+        fromAddress: process.env.FROM_EMAIL_ADDRESS,
+        content: `<h1>Hi ${validUser.firstName},</h1>
+        <p>You have a new connection request.</p>
+        `,
+      });
+
+      console.log("Email sent status:", emailSendResponse);
+
       sendResponse(res, {
         message:
           status == "interested"
@@ -123,7 +136,7 @@ connectionRequestRouter.delete(
 
       if (!requestId) throw new AppError(400, "The request id is required.");
 
-     await ConnectionRequest.deleteOne({ _id: requestId });
+      await ConnectionRequest.deleteOne({ _id: requestId });
 
       sendResponse(res, {
         message: "Connection request deleted successfully.",

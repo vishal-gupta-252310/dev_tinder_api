@@ -39,7 +39,7 @@ authRouter.post("/auth/signup", async (req, res, next) => {
     res.cookie("token", token, {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-    
+
     sendResponse(res, {
       statusCode: 201,
       message: "User added successfully.",
@@ -51,6 +51,7 @@ authRouter.post("/auth/signup", async (req, res, next) => {
 });
 
 authRouter.post("/auth/login", async (req, res, next) => {
+  console.log(req.body);
   const { email, password } = req.body;
 
   try {
