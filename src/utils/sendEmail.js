@@ -6,7 +6,7 @@ const createSimpleSesEmailCommand = ({
   fromAddress,
   content,
   isHtmlContent,
-  isTextContent = true,
+  isTextContent,
   Subject = "This is the subject",
 }) => {
   let params = {
@@ -47,8 +47,22 @@ const createSimpleSesEmailCommand = ({
  * To send email using AWS SES
  * @param {object} props
  */
-const sendEmail = async (props) => {
-  const command = createSimpleSesEmailCommand(props);
+const sendEmail = async ({
+  toAddress,
+  fromAddress,
+  content,
+  isHtmlContent,
+  isTextContent = true,
+  Subject = "This is the subject",
+}) => {
+  const command = createSimpleSesEmailCommand({
+    toAddress,
+    fromAddress,
+    content,
+    isHtmlContent,
+    isTextContent,
+    Subject,
+  });
 
   try {
     const response = await sesClient.send(command);

@@ -19,4 +19,12 @@ const USER_EDIT_FIELDS = [
 
 const GENDER_OPTIONS = ["Male", "Female", "Others"];
 
-module.exports = { USER_SIGNUP_FIELDS, GENDER_OPTIONS, USER_EDIT_FIELDS };
+const USER_SAFE_PUBLIC_DATA =
+  "firstName lastName skills profilePhoto gender age about";
+
+module.exports = {
+  USER_SIGNUP_FIELDS,
+  GENDER_OPTIONS,
+  USER_EDIT_FIELDS,
+  USER_SAFE_PUBLIC_DATA,
+};

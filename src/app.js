@@ -8,6 +8,9 @@ const cors = require("cors");
 // env variables
 dotenv.config({ path: "./.env" });
 
+// cron jobs
+require("./cronJobs/sendEmailJob");
+
 // middlewares
 const handleGlobalError = require("./middlewares/errorHandler");
 

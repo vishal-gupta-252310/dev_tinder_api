@@ -4,10 +4,9 @@ const ConnectionRequest = require("../models/connectionRequest");
 const sendResponse = require("../utils/sendResponse");
 const AppError = require("../utils/AppError");
 const User = require("../models/user");
+const { USER_SAFE_PUBLIC_DATA } = require("../config/modelHelper");
 
 const userRouter = express.Router();
-const USER_SAFE_PUBLIC_DATA =
-  "firstName lastName skills profilePhoto gender age about";
 
 // To get all pending connection requests for logged in user
 userRouter.get("/users/me/requests", isUserAuth, async (req, res) => {
@@ -74,6 +73,7 @@ userRouter.get("/users/me/connections", isUserAuth, async (req, res) => {
     res.json({
       status: "success",
       message: "Connections are fetched successfully.",
+      statusCode: 200,
       data: filteredUsers ?? [],
     });
   } catch (error) {
